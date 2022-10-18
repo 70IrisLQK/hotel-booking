@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { MoreThanOrEqual } from 'typeorm';
+import { RoomStatus } from '../../common/enums/room.enum';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateRoomDto } from './room.dto';
 import { RoomRepository } from './room.repository';
@@ -21,6 +23,17 @@ export class RoomService {
     return { status: 'success', status_code: '200', data: rooms };
   }
 
+  public async getAvailableRoom() {
+    const rooms = await this.roomRepository.find({
+      status: RoomStatus.AVAILABLE,
+      quantity: MoreThanOrEqual(1),
+    });
+
+    if (!rooms) throw new NotFoundException('NOT_FOUND_ROOM');
+
+    return { status: 'success', status_code: '200', data: rooms };
+  }
+
   public async getRoomByID(roomId: string) {
     const room = await this.roomRepository.findOne({ id: roomId });
 
@@ -31,11 +44,11 @@ export class RoomService {
 
   public async createRoom(
     payload: CreateRoomDto,
-    files: Array<Express.Multer.File>,
+    images: Array<Express.Multer.File>,
   ) {
     const urls = [];
     const publicIds = [];
-    for (const file of files) {
+    for (const file of images) {
       const newPath = await this.cloudinaryService
         .uploadImage(file)
         .catch(() => {

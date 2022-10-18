@@ -32,7 +32,7 @@ export class Room extends AbstractEntity {
   @Column({
     type: 'enum',
     enum: RoomStatus,
-    default: RoomStatus.UNAVAILABLE,
+    default: RoomStatus.AVAILABLE,
   })
   status: RoomStatus;
 

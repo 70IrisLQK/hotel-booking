@@ -3,6 +3,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { CommonModule } from './common/common.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { RoomModule } from './modules/room/room.module';
+import { BookingModule } from './modules/booking/booking.module';
+import { BookingDetailModule } from './modules/booking-detail/booking-detail.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { RoomModule } from './modules/room/room.module';
       dest: './upload',
     }),
     CloudinaryModule,
+    BookingModule,
+    BookingDetailModule,
   ],
   controllers: [],
   providers: [],

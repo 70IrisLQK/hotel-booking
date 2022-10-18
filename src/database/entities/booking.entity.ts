@@ -1,17 +1,23 @@
 import { User } from './user.entity';
 import { AbstractEntity } from 'src/common/abstract/entity.abstract';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { BookingStatus } from '../../common/enums/booking.enum';
 import { BookingDetail } from './booking-detail.entity';
 import { Customer } from './customer.entity';
 
 @Entity('t_booking')
 export class Booking extends AbstractEntity {
-  @Column({ type: 'date' })
-  checkInDate: string;
+  @CreateDateColumn()
+  checkInDate: Date;
 
-  @Column({ type: 'date' })
-  checkOutDate: string;
+  @CreateDateColumn()
+  checkOutDate: Date;
 
   @Column({
     type: 'enum',

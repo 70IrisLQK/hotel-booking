@@ -22,6 +22,11 @@ export class RoomController {
     return this.roomService.getAllRoom();
   }
 
+  @Get('/available')
+  public async getAvailableRoom() {
+    return this.roomService.getAvailableRoom();
+  }
+
   @Get(':id')
   public async getRoomById(@Param('id') roomId: string) {
     return this.roomService.getRoomByID(roomId);
@@ -31,9 +36,9 @@ export class RoomController {
   @UseInterceptors(FilesInterceptor('images'))
   public async createRoom(
     @Body() payload: CreateRoomDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ) {
-    return this.roomService.createRoom(payload, files);
+    return this.roomService.createRoom(payload, images);
   }
 
   @Put('/:id')
