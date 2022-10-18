@@ -20,3 +20,8 @@ export class UpdateBookingDto {
   @IsEnum(BookingStatus)
   bookingStatus: BookingStatus;
 }
+
+export class CustomerUpdateBookingDto {
+  @IsDateString()
+  checkInDate: string;
+}

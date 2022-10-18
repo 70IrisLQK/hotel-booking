@@ -1,5 +1,5 @@
 import { Booking } from './booking.entity';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { AbstractEntity } from 'src/common/abstract/entity.abstract';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import { UserRole } from './user-role.entity';
@@ -37,15 +37,7 @@ export class User extends AbstractEntity {
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
 
-  @BeforeInsert()
-  @BeforeUpdate()
-  async hashPassword(): Promise<void> {
-    if (this.password) {
-      this.password = await bcrypt.hash(this.password, 10);
-    }
-  }
-
   async isPasswordMatch(password) {
-    return bcrypt.compare(password, this.password);
+    return await bcrypt.compare(password, this.password);
   }
 }

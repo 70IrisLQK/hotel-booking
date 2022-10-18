@@ -5,6 +5,8 @@ import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { RoomModule } from './modules/room/room.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { BookingDetailModule } from './modules/booking-detail/booking-detail.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { RoleModule } from './modules/role/role.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { BookingDetailModule } from './modules/booking-detail/booking-detail.mod
     CloudinaryModule,
     BookingModule,
     BookingDetailModule,
+    AuthModule,
+    RoleModule,
   ],
   controllers: [],
   providers: [],

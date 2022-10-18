@@ -1,10 +1,27 @@
+import { Booking } from './../../database/entities/booking.entity';
 import { RoomRepository } from './../room/room.repository';
 import { BookingDetailRepository } from './../booking-detail/booking-detail.repository';
-import { CreateBookingDto, UpdateBookingDto } from './booking.dto';
+import {
+  CreateBookingDto,
+  CustomerUpdateBookingDto,
+  UpdateBookingDto,
+} from './booking.dto';
 import { BookingRepository } from './booking.repository';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as _ from 'lodash';
 import { RoomStatus } from '../../common/enums/room.enum';
+import {
+  LessThan,
+  LessThanOrEqual,
+  Like,
+  MoreThan,
+  MoreThanOrEqual,
+} from 'typeorm';
+import { format } from 'date-fns';
 
 @Injectable()
 export class BookingService {
@@ -56,6 +73,28 @@ export class BookingService {
       ...payload,
     });
     return { status: 'success', status_code: '200', data: updatedBooking };
+  }
+
+  public async customerUpdateBooking(
+    bookingId: string,
+    payload: CustomerUpdateBookingDto,
+  ) {
+    const { checkInDate } = payload;
+    const query = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .where('booking.checkInDate > :checkInDate', {
+        checkInDate: checkInDate,
+      })
+      .andWhere('booking.id = :id', { id: bookingId })
+      .getMany();
+    if (query.length > 0) {
+      const updatedBooking = await this.bookingRepository.save(query);
+      return { status: 'success', status_code: '200', data: updatedBooking };
+    } else {
+      throw new BadRequestException(
+        'Can edit any booking before the check start date',
+      );
+    }
   }
 
   public async getBookingById(bookingId: string) {

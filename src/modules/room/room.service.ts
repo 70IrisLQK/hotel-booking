@@ -98,8 +98,7 @@ export class RoomService {
     if (!deleteResponse.affected) {
       throw new NotFoundException('NOT_FOUND_ROOM');
     }
-    const result = await this.roomRepository.find({
-      where: { id: roomId },
+    const result = await this.roomRepository.findOne(roomId, {
       withDeleted: true,
     });
     return { status: 'success', status_code: '200', data: result };
