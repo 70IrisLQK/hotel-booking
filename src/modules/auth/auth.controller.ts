@@ -1,18 +1,22 @@
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UserLoginDto, UserRegisterDto } from './auth.dto';
 import { AuthService } from './auth.service';
-import { Body, Controller, Post } from '@nestjs/common';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(public readonly authService: AuthService) {}
 
   @Post('/login')
-  public async userLogin(@Body() payload: UserLoginDto) {
+  @HttpCode(HttpStatus.OK)
+  async userLogin(@Body() payload: UserLoginDto) {
     return this.authService.userLogin(payload);
   }
 
   @Post('/register')
-  public async userRegister(@Body() payload: UserRegisterDto) {
+  @HttpCode(HttpStatus.OK)
+  async userRegister(@Body() payload: UserRegisterDto) {
     return this.authService.userRegister(payload);
   }
 }

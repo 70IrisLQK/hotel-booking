@@ -5,6 +5,7 @@ import { BookingController } from './booking.controller';
 import { BookingService } from './booking.service';
 import { BookingRepository } from './booking.repository';
 import { RoomRepository } from '../room/room.repository';
+import { UserRepository } from '../user/user.repository';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RoomRepository } from '../room/room.repository';
       BookingRepository,
       BookingDetailRepository,
       RoomRepository,
+      UserRepository,
     ]),
   ],
   controllers: [BookingController],

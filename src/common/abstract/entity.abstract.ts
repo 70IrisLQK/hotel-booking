@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -9,7 +10,7 @@ import {
 /**
  * Use for hidden all unnecessary column abstract when select all
  */
-export abstract class AbstractEntity {
+export abstract class AbstractEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

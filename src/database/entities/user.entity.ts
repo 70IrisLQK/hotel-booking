@@ -25,10 +25,10 @@ export class User extends AbstractEntity {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ nullable: true })
   address: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone: string;
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
@@ -36,6 +36,18 @@ export class User extends AbstractEntity {
 
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword(): Promise<void> {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+
+  async hashedPassword(password: string) {
+    return await bcrypt.hash(password, 10);
+  }
 
   async isPasswordMatch(password) {
     return await bcrypt.compare(password, this.password);

@@ -23,10 +23,10 @@ export class Room extends AbstractEntity {
   @Column('simple-array')
   publicIds: string[];
 
-  @Column({ default: 0 })
+  @Column({ default: 0, unsigned: true })
   quantity: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, unsigned: true })
   price: number;
 
   @Column({

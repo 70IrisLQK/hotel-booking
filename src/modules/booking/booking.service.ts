@@ -1,27 +1,17 @@
-import { Booking } from './../../database/entities/booking.entity';
-import { RoomRepository } from './../room/room.repository';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import * as _ from 'lodash';
+import { RoomStatus } from '../../common/enums/room.enum';
+import { BookingException } from '../../common/exceptions/booking.exceptions';
+import { UserJwtDto } from '../auth/auth.dto';
+import { UserRepository } from '../user/user.repository';
 import { BookingDetailRepository } from './../booking-detail/booking-detail.repository';
+import { RoomRepository } from './../room/room.repository';
 import {
   CreateBookingDto,
   CustomerUpdateBookingDto,
   UpdateBookingDto,
 } from './booking.dto';
 import { BookingRepository } from './booking.repository';
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-import * as _ from 'lodash';
-import { RoomStatus } from '../../common/enums/room.enum';
-import {
-  LessThan,
-  LessThanOrEqual,
-  Like,
-  MoreThan,
-  MoreThanOrEqual,
-} from 'typeorm';
-import { format } from 'date-fns';
 
 @Injectable()
 export class BookingService {
@@ -29,25 +19,32 @@ export class BookingService {
     private bookingRepository: BookingRepository,
     private bookingDetailRepository: BookingDetailRepository,
     private roomRepository: RoomRepository,
+    private userRepository: UserRepository,
   ) {}
 
-  public async createBooking(payload: CreateBookingDto) {
+  public async createBooking(userAuth: UserJwtDto, payload: CreateBookingDto) {
     const { roomItems, checkInDate, checkOutDate } = payload;
 
-    console.log(roomItems);
+    const user = await this.userRepository.findOne(userAuth.id);
 
     const newBooking = await this.bookingRepository.save({
+      user: user,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
     });
+
     const bookingDetail = await Promise.all(
       _.map(roomItems, async (item) => {
         const room = await this.roomRepository.findOne(item.id);
 
         // Update stock
         await this.roomRepository.update(item.id, {
-          quantity: room.quantity - item.quantity,
-          status: RoomStatus.UNAVAILABLE,
+          quantity:
+            room.quantity > item.quantity
+              ? room.quantity - item.quantity
+              : room.quantity,
+          status:
+            room.quantity === 0 ? RoomStatus.UNAVAILABLE : RoomStatus.AVAILABLE,
         });
 
         return {
@@ -62,8 +59,11 @@ export class BookingService {
       await this.bookingDetailRepository.bulkCreate(bookingDetail);
     }
 
-    const result = await this.bookingRepository.findOne({ id: newBooking.id });
-    return { status: 'success', status_code: '200', data: result };
+    const result = await this.bookingRepository.findOne(
+      { id: newBooking.id },
+      { relations: ['user'] },
+    );
+    return { status: 'success', statusCode: '200', data: result };
   }
 
   public async updateBooking(bookingId: string, payload: UpdateBookingDto) {
@@ -72,7 +72,7 @@ export class BookingService {
       ...data,
       ...payload,
     });
-    return { status: 'success', status_code: '200', data: updatedBooking };
+    return { status: 'success', statusCode: '200', data: updatedBooking };
   }
 
   public async customerUpdateBooking(
@@ -86,13 +86,18 @@ export class BookingService {
         checkInDate: checkInDate,
       })
       .andWhere('booking.id = :id', { id: bookingId })
-      .getMany();
-    if (query.length > 0) {
-      const updatedBooking = await this.bookingRepository.save(query);
-      return { status: 'success', status_code: '200', data: updatedBooking };
+      .getOne();
+
+    if (query) {
+      const updatedBooking = await this.bookingRepository.save({
+        ...query,
+        ...payload,
+      });
+      return { status: 'success', statusCode: '200', data: updatedBooking };
     } else {
-      throw new BadRequestException(
-        'Can edit any booking before the check start date',
+      throw new BookingException(
+        'CAN_NOT_EDIT_ANY_BOOKING_BEFORE_START_DATE',
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -100,8 +105,9 @@ export class BookingService {
   public async getBookingById(bookingId: string) {
     const booking = await this.bookingRepository.findOne(bookingId);
 
-    if (!booking) throw new NotFoundException('NOT_FOUND_BOOKING');
+    if (!booking)
+      throw new BookingException('NOT_FOUND_BOOKING', HttpStatus.NOT_FOUND);
 
-    return { status: 'success', status_code: '200', data: booking };
+    return { status: 'success', statusCode: '200', data: booking };
   }
 }

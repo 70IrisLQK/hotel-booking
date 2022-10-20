@@ -1,12 +1,14 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MoreThanOrEqual } from 'typeorm';
 import { RoomStatus } from '../../common/enums/room.enum';
+import { RoomException } from '../../common/exceptions/room.exception';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { CreateRoomDto } from './room.dto';
+import { BookingDetail } from './../../database/entities/booking-detail.entity';
+import { CreateRoomDto, FindRoomDto } from './room.dto';
 import { RoomRepository } from './room.repository';
 
 @Injectable()
@@ -18,28 +20,48 @@ export class RoomService {
   public async getAllRoom() {
     const rooms = await this.roomRepository.find();
 
-    if (!rooms) throw new NotFoundException('NOT_FOUND_ROOM');
+    if (!rooms) throw new RoomException('NOT_FOUND_ROOM', HttpStatus.NOT_FOUND);
 
-    return { status: 'success', status_code: '200', data: rooms };
+    return { status: 'success', statusCode: '200', data: rooms };
   }
 
-  public async getAvailableRoom() {
-    const rooms = await this.roomRepository.find({
-      status: RoomStatus.AVAILABLE,
-      quantity: MoreThanOrEqual(1),
-    });
+  public async getAvailableRoom(payload: FindRoomDto) {
+    const { checkInDate, checkOutDate } = payload;
+    const query = await this.roomRepository.createQueryBuilder('room');
 
-    if (!rooms) throw new NotFoundException('NOT_FOUND_ROOM');
+    if (checkInDate && checkOutDate) {
+      query.where((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('1')
+          .from(BookingDetail, 'bookingDetail')
+          .innerJoin('bookingDetail.booking', 'booking')
+          .where('bookingDetail.roomId = room.id')
+          .andWhere(' booking.checkInDate < :checkOutDate', {
+            checkOutDate: checkOutDate,
+          })
+          .andWhere('booking.checkOutDate > :checkInDate ', {
+            checkInDate: checkInDate,
+          })
+          .getQuery();
+        return 'NOT EXISTS ' + subQuery;
+      });
+    }
 
-    return { status: 'success', status_code: '200', data: rooms };
+    query
+      .andWhere('room.status = :status', { status: RoomStatus.AVAILABLE })
+      .andWhere('room.quantity > :quantity', { quantity: 0 });
+
+    const result = await query.getMany();
+    return { status: 'success', statusCode: '200', data: result };
   }
 
   public async getRoomByID(roomId: string) {
     const room = await this.roomRepository.findOne({ id: roomId });
 
-    if (!room) throw new NotFoundException('NOT_FOUND_ROOM');
+    if (!room) throw new RoomException('NOT_FOUND_ROOM', HttpStatus.NOT_FOUND);
 
-    return { status: 'success', status_code: '201', data: room };
+    return { status: 'success', statusCode: '201', data: room };
   }
 
   public async createRoom(
@@ -52,7 +74,7 @@ export class RoomService {
       const newPath = await this.cloudinaryService
         .uploadImage(file)
         .catch(() => {
-          throw new BadRequestException('INVALID_FILE_TYPE');
+          throw new RoomException('INVALID_FILE_TYPE', HttpStatus.BAD_REQUEST);
         });
       urls.push(newPath.url);
       publicIds.push(newPath.public_id);
@@ -61,8 +83,9 @@ export class RoomService {
     payload.publicIds = publicIds;
     payload.price = Number(payload.price);
     payload.quantity = Number(payload.quantity);
+
     const newRoom = await this.roomRepository.save(payload);
-    return { status: 'success', status_code: '201', data: newRoom };
+    return { status: 'success', statusCode: '201', data: newRoom };
   }
 
   public async updateRoom(
@@ -82,7 +105,10 @@ export class RoomService {
         const newPath = await this.cloudinaryService
           .uploadImage(file)
           .catch(() => {
-            throw new BadRequestException('INVALID_FILE_TYPE');
+            throw new RoomException(
+              'INVALID_FILE_TYPE',
+              HttpStatus.BAD_REQUEST,
+            );
           });
         urls.push(newPath.url);
       }
@@ -90,17 +116,17 @@ export class RoomService {
     }
 
     const updatedRoom = await this.roomRepository.save({ ...data, ...payload });
-    return { status: 'success', status_code: '200', data: updatedRoom };
+    return { status: 'success', statusCode: '200', data: updatedRoom };
   }
 
   public async deleteRoom(roomId: string) {
     const deleteResponse = await this.roomRepository.softDelete(roomId);
     if (!deleteResponse.affected) {
-      throw new NotFoundException('NOT_FOUND_ROOM');
+      throw new RoomException('NOT_FOUND_ROOM', HttpStatus.NOT_FOUND);
     }
     const result = await this.roomRepository.findOne(roomId, {
       withDeleted: true,
     });
-    return { status: 'success', status_code: '200', data: result };
+    return { status: 'success', statusCode: '200', data: result };
   }
 }

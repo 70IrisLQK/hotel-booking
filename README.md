@@ -35,14 +35,20 @@ $ npm install
 ## Running the app
 
 ```bash
-# development
-$ npm run start
+$1 Create database htm
 
-# watch mode
-$ npm run start:dev
+$2 Change file ormconfig.env
 
-# production mode
-$ npm run start:prod
+TYPEORM_CONNECTION
+TYPEORM_HOST
+TYPEORM_USERNAME
+TYPEORM_PASSWORD
+TYPEORM_DATABASE
+TYPEORM_PORT
+
+$2 npm run run-mgrt
+
+$3 npm run start:dev
 ```
 
 ## Test

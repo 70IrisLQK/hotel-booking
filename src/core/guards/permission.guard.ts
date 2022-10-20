@@ -10,7 +10,7 @@ export class PermissionGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const requirePermissions = this.reflector.get<string[]>(
       'permissions',
-      context.getHandler()
+      context.getHandler(),
     );
 
     if (!requirePermissions.length) {
@@ -18,6 +18,7 @@ export class PermissionGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+
     const { roles, permissions } = request.user;
 
     if (roles.includes('Super Admin')) {
