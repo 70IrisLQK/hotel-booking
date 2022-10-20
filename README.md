@@ -46,7 +46,7 @@ TYPEORM_PASSWORD
 TYPEORM_DATABASE
 TYPEORM_PORT
 
-$2 npm run run-mgrt
+$3 npm run run-mgrt
 
-$3 npm run start:dev
+$4 npm run start:dev
 ```

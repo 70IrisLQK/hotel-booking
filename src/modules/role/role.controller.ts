@@ -13,9 +13,11 @@ import {
 } from '@nestjs/common';
 import { CreateRoleDto, UpdateRoleDto } from './role.dto';
 import { Auth } from '../../core/decorators';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('roles')
+@ApiTags('roles')
+@ApiBearerAuth('jwt')
 export class RoleController {
   constructor(private roleService: RoleService) {}
 

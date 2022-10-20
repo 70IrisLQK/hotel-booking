@@ -8,7 +8,7 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Auth, UserAuth } from '../../core/decorators';
 import { PermissionEnum } from './../../common/enums/permission.enum';
 import {
@@ -20,6 +20,8 @@ import { BookingService } from './booking.service';
 import { UserJwtDto } from '../auth/auth.dto';
 
 @Controller('bookings')
+@ApiTags('bookings')
+@ApiBearerAuth('jwt')
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 

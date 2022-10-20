@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingDetailModule } from './modules/booking-detail/booking-detail.module';
@@ -17,7 +16,6 @@ import { RoomModule } from './modules/room/room.module';
     BookingDetailModule,
     AuthModule,
     RoleModule,
-    ConfigModule.forRoot({ envFilePath: '.env' }),
   ],
   controllers: [],
   providers: [],
